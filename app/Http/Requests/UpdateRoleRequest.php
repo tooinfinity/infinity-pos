@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Auth\AuthorizesByPermission;
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Container\Attributes\RouteParameter;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,22 +16,15 @@ use Spatie\Permission\Models\Role;
 
 final class UpdateRoleRequest extends FormRequest
 {
-    use AuthorizesByPermission;
-
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
-    {
-        $role = $this->route('role');
-
-        if (! $role instanceof Role || RoleName::contains($role->name)) {
-            return false;
-        }
-
-        $actor = $this->user();
-
-        return $actor !== null && $actor->can($this->permission()->value);
+    public function authorize(
+        #[CurrentUser] User $actor,
+        #[RouteParameter('role')] Role $role,
+    ): bool {
+        return ! RoleName::contains($role->name)
+            && $actor->can($this->permission()->value);
     }
 
     /**
@@ -45,7 +40,7 @@ final class UpdateRoleRequest extends FormRequest
         ];
     }
 
-    protected function permission(): Permission
+    private function permission(): Permission
     {
         return Permission::RolesUpdate;
     }

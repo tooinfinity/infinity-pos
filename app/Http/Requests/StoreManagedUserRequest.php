@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Auth\AuthorizesByPermission;
 use App\Enums\Permission;
 use App\Enums\RoleName;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,16 +15,12 @@ use Illuminate\Validation\Rules\Password;
 
 final class StoreManagedUserRequest extends FormRequest
 {
-    use AuthorizesByPermission;
-
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
+    public function authorize(#[CurrentUser] User $actor): bool
     {
-        $actor = $this->user();
-
-        if ($actor === null || $actor->cannot($this->permission()->value)) {
+        if ($actor->cannot($this->permission()->value)) {
             return false;
         }
 
@@ -51,7 +47,7 @@ final class StoreManagedUserRequest extends FormRequest
         ];
     }
 
-    protected function permission(): Permission
+    private function permission(): Permission
     {
         return Permission::UsersCreate;
     }

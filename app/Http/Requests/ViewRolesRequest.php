@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Auth\AuthorizesByPermission;
 use App\Enums\Permission;
+use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class ViewRolesRequest extends FormRequest
 {
-    use AuthorizesByPermission;
+    public function authorize(#[CurrentUser] User $user): bool
+    {
+        return $user->can($this->permission()->value) === true;
+    }
 
     /**
      * @return array<string, mixed>
@@ -20,7 +24,7 @@ final class ViewRolesRequest extends FormRequest
         return [];
     }
 
-    protected function permission(): Permission
+    private function permission(): Permission
     {
         return Permission::RolesView;
     }
