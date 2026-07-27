@@ -7,7 +7,7 @@ import { create, destroy, edit, index } from '@/routes/roles';
 import type { BreadcrumbItem } from '@/types';
 
 type Role = {
-    id: number;
+    id: string;
     name: string;
     is_protected: boolean;
     permissions: string[];

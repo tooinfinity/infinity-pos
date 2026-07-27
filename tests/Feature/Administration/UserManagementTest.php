@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Actions\CreateUser;
 use App\Actions\SyncUserRoles;
 use App\Actions\UpdateUserStatus;
-use App\Data\CreateUserData;
 use App\Enums\Permission;
 use App\Enums\RoleName;
 use App\Models\User;
@@ -21,12 +19,11 @@ function bootstrapAdministrator(): User
     $role = Role::findOrCreate(RoleName::Administrator->value, 'web');
     $role->syncPermissions($permissions);
 
-    $user = resolve(CreateUser::class)->handle(CreateUserData::from([
+    $user = User::factory()->create([
         'name' => 'Root Admin',
         'email' => 'admin@example.com',
         'password' => 'password',
-        'roles' => [],
-    ]));
+    ]);
     $user->assignRole($role);
 
     return $user;
@@ -318,6 +315,21 @@ it('renders user creation according to role assignment capability', function ():
         ->assertInertia(fn ($page) => $page
             ->where('canAssignRoles', false)
             ->where('roles', fn ($roles): bool => ! $roles->contains('value', RoleName::Administrator->value)));
+});
+
+it('allows a delegated editor to open user management without users view permission', function (): void {
+    bootstrapAdministrator();
+    $editor = User::factory()->create();
+    assignPermissionsThroughRole($editor, [Permission::UsersUpdate->value]);
+    $target = User::factory()->create();
+
+    $this->actingAs($editor)
+        ->withSession(confirmAdministrativePassword())
+        ->get(route('users.edit', $target))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('users/edit')
+            ->where('can.update', true));
 });
 
 it('forbids opening user creation without users create permission', function (): void {

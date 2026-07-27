@@ -20,7 +20,7 @@ import type { BreadcrumbItem } from '@/types';
 
 type Props = {
     role: {
-        id: number;
+        id: string;
         name: string;
         is_protected: boolean;
         permissions_locked: boolean;

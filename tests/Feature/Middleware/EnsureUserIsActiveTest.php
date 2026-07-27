@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Response;
 
 beforeEach(function (): void {
     config()->set('pos.session.idle_minutes', 15);
@@ -19,6 +22,15 @@ function recentActivityUser(): User
         'last_activity_at' => CarbonImmutable::now(),
     ]);
 }
+
+it('passes unauthenticated requests to the next middleware', function (): void {
+    $response = resolve(EnsureUserIsActive::class)->handle(
+        Request::create('/'),
+        fn (Request $request): Response => response('passed'),
+    );
+
+    expect($response->getContent())->toBe('passed');
+});
 
 it('allows an active user through and stamps their activity', function (): void {
     $user = recentActivityUser();

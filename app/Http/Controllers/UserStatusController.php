@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\UpdateUserStatus;
 use App\Http\Requests\UpdateUserStatusRequest;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Throwable;
 
@@ -15,15 +16,12 @@ final readonly class UserStatusController
     /**
      * @throws Throwable
      */
-    public function __invoke(UpdateUserStatusRequest $request, User $user, UpdateUserStatus $action): RedirectResponse
+    public function __invoke(UpdateUserStatusRequest $request, #[CurrentUser] User $actor, User $user, UpdateUserStatus $action): RedirectResponse
     {
-        $actor = $request->user();
-        assert($actor instanceof User);
-
         $action->handle(
             $actor,
             $user,
-            (bool) $request->boolean('is_active'),
+            (bool) $request->validated('is_active'),
         );
 
         return to_route('users.index')

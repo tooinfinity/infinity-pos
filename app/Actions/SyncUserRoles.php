@@ -72,7 +72,10 @@ final readonly class SyncUserRoles
 
     private function retainAdministratorPermissions(User $user): void
     {
-        $administratorRole = Role::query()->where('name', RoleName::Administrator->value)->first();
+        $administratorRole = Role::query()
+            ->where('name', RoleName::Administrator->value)
+            ->where('guard_name', 'web')
+            ->first();
 
         if ($administratorRole === null) {
             return;

@@ -64,7 +64,9 @@ final readonly class DeleteUser
 
         return User::query()
             ->whereKeyNot($user->getKey())
-            ->whereHas('roles', fn (Builder $query) => $query->where('name', RoleName::Administrator->value))
+            ->whereHas('roles', fn (Builder $query) => $query
+                ->where('name', RoleName::Administrator->value)
+                ->where('guard_name', 'web'))
             ->doesntExist();
     }
 }

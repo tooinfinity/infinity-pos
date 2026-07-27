@@ -9,11 +9,14 @@ use App\Actions\UpdateUser;
 use App\Data\CreateUserData;
 use App\Data\UpdateUserData;
 use App\Enums\Permission;
+use App\Http\Requests\CreateManagedUserPageRequest;
+use App\Http\Requests\EditManagedUserPageRequest;
 use App\Http\Requests\StoreManagedUserRequest;
 use App\Http\Requests\UpdateManagedUserRequest;
 use App\Http\Requests\ViewUsersRequest;
 use App\Models\User;
-use App\Queries\ListManagedUsers;
+use App\Queries\GetManagedUserEditPageData;
+use App\Queries\GetManagedUsersIndexPageData;
 use App\Queries\ListSelectableRoles;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
@@ -23,90 +26,33 @@ use Throwable;
 
 final readonly class UserManagementController
 {
-    public function index(ViewUsersRequest $request, ListManagedUsers $query): Response
+    public function index(ViewUsersRequest $request, #[CurrentUser] User $actor, GetManagedUsersIndexPageData $pageData): Response
     {
-        $users = $query->execute();
-        $actor = $request->user();
-        assert($actor instanceof User);
-
-        return Inertia::render('users/index', [
-            'users' => $users->through(fn (User $user): array => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'is_active' => (bool) $user->is_active,
-                'deleted_at' => $user->deleted_at?->toIso8601String(),
-                'created_at' => $user->created_at->toIso8601String(),
-                'roles' => $user->roles->pluck('name')->all(),
-                'can_manage_status' => $actor->can(Permission::UsersManageStatus->value)
-                    && ! $actor->is($user)
-                    && $user->deleted_at === null,
-                'can_manage' => $user->deleted_at !== null
-                    ? $actor->can(Permission::UsersDelete->value)
-                    : $actor->canAny([
-                        Permission::UsersUpdate->value,
-                        Permission::UsersAssignRoles->value,
-                        Permission::UsersResetPassword->value,
-                        Permission::UsersDelete->value,
-                    ]),
-            ])->toArray(),
-            'can' => ['create' => $actor->can(Permission::UsersCreate->value)],
-        ]);
+        return Inertia::render('users/index', $pageData->execute($actor));
     }
 
-    public function create(#[CurrentUser] User $user, ListSelectableRoles $roles): Response
+    public function create(CreateManagedUserPageRequest $request, #[CurrentUser] User $actor, ListSelectableRoles $roles): Response
     {
-        $this->abortUnless($user, Permission::UsersCreate->value);
-
         return Inertia::render('users/create', [
-            'roles' => $roles->execute($user),
-            'canAssignRoles' => $user->can(Permission::UsersAssignRoles->value) === true,
+            'roles' => $roles->execute($actor),
+            'canAssignRoles' => $actor->can(Permission::UsersAssignRoles->value) === true,
         ]);
     }
 
     /**
      * @throws Throwable
      */
-    public function store(StoreManagedUserRequest $request, CreateUser $action): RedirectResponse
+    public function store(StoreManagedUserRequest $request, #[CurrentUser] User $actor, CreateUser $action): RedirectResponse
     {
-        $user = $action->handle(CreateUserData::from($request->validated()));
+        $user = $action->handle($actor, CreateUserData::from($request->validated()));
 
         return to_route('users.index')
             ->with('toast', ['type' => 'success', 'message' => sprintf('Account for %s created.', $user->name)]);
     }
 
-    public function edit(#[CurrentUser] User $actor, User $user, ListSelectableRoles $roles): Response
+    public function edit(EditManagedUserPageRequest $request, #[CurrentUser] User $actor, User $user, GetManagedUserEditPageData $pageData): Response
     {
-        abort_unless($actor->canAny([
-            Permission::UsersUpdate->value,
-            Permission::UsersAssignRoles->value,
-            Permission::UsersResetPassword->value,
-            Permission::UsersDelete->value,
-        ]), 403);
-
-        $user->load('roles:id,name,guard_name');
-
-        $isDeleted = $user->deleted_at !== null;
-
-        return Inertia::render('users/edit', [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'is_active' => (bool) $user->is_active,
-                'deleted_at' => $user->deleted_at?->toIso8601String(),
-                'roles' => $user->roles->pluck('name')->all(),
-            ],
-            'isDeleted' => $isDeleted,
-            'roles' => $roles->execute($actor),
-            'can' => [
-                'update' => ! $isDeleted && $actor->can(Permission::UsersUpdate->value),
-                'assign_roles' => ! $isDeleted && $actor->can(Permission::UsersAssignRoles->value),
-                'reset_password' => ! $isDeleted && $actor->can(Permission::UsersResetPassword->value),
-                'archive' => ! $isDeleted && ! $actor->is($user) && $actor->can(Permission::UsersDelete->value),
-                'restore' => $isDeleted && $actor->can(Permission::UsersDelete->value),
-            ],
-        ]);
+        return Inertia::render('users/edit', $pageData->execute($actor, $user));
     }
 
     public function update(UpdateManagedUserRequest $request, User $user, UpdateUser $action): RedirectResponse
@@ -115,10 +61,5 @@ final readonly class UserManagementController
 
         return to_route('users.index')
             ->with('toast', ['type' => 'success', 'message' => 'Account details updated.']);
-    }
-
-    private function abortUnless(mixed $actor, string $permission): void
-    {
-        abort_unless($actor instanceof User && $actor->can($permission), 403);
     }
 }

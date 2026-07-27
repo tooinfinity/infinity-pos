@@ -155,6 +155,20 @@ it('requires roles create permission to open the role creation page', function (
         ->assertForbidden();
 });
 
+it('allows a delegated creator to open role creation without roles view permission', function (): void {
+    bootstrapAdministratorRole();
+    $creator = User::factory()->create();
+    $creatorRole = Role::create(['name' => 'Role creator', 'guard_name' => 'web']);
+    $creatorRole->givePermissionTo(Permission::RolesCreate->value);
+
+    $creator->assignRole($creatorRole);
+
+    $this->actingAs($creator)
+        ->get(route('roles.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('roles/create'));
+});
+
 it('renders custom and protected role management capabilities', function (): void {
     $admin = bootstrapAdministratorRole();
     $custom = Role::create(['name' => 'Shift Lead', 'guard_name' => 'web']);
@@ -206,6 +220,23 @@ it('requires update or assign permissions capability to edit a role', function (
     $this->actingAs($viewer)
         ->get(route('roles.edit', $role))
         ->assertForbidden();
+});
+
+it('allows a delegated editor to edit a role without roles view permission', function (): void {
+    bootstrapAdministratorRole();
+    $editor = User::factory()->create();
+    $editorRole = Role::create(['name' => 'Role editor', 'guard_name' => 'web']);
+    $editorRole->givePermissionTo(Permission::RolesUpdate->value);
+
+    $editor->assignRole($editorRole);
+    $role = Role::create(['name' => 'Shift Lead', 'guard_name' => 'web']);
+
+    $this->actingAs($editor)
+        ->get(route('roles.edit', $role))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('roles/edit')
+            ->where('can.update', true));
 });
 
 it('deletes an unassigned custom role', function (): void {

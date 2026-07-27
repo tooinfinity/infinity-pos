@@ -8,15 +8,13 @@ use App\Actions\ResetUserPassword;
 use App\Data\ResetUserPasswordData;
 use App\Http\Requests\ResetManagedUserPasswordRequest;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 
 final readonly class UserPasswordResetController
 {
-    public function __invoke(ResetManagedUserPasswordRequest $request, User $user, ResetUserPassword $action): RedirectResponse
+    public function __invoke(ResetManagedUserPasswordRequest $request, #[CurrentUser] User $actor, User $user, ResetUserPassword $action): RedirectResponse
     {
-        $actor = $request->user();
-        assert($actor instanceof User);
-
         $action->handle(
             $actor,
             $user,

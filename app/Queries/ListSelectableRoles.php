@@ -15,7 +15,9 @@ final readonly class ListSelectableRoles
      */
     public function execute(User $actor): array
     {
-        $query = Role::query()->orderBy('name');
+        $query = Role::query()
+            ->where('guard_name', 'web')
+            ->orderBy('name');
 
         if (! $actor->hasRole(RoleName::Administrator->value)) {
             $query->where('name', '!=', RoleName::Administrator->value);

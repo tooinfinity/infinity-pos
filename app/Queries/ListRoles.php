@@ -15,6 +15,7 @@ final readonly class ListRoles
     public function execute(): Collection
     {
         return Role::query()
+            ->where('guard_name', 'web')
             ->with('permissions:id,name,guard_name')
             ->withCount('users')
             ->orderBy('name')

@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\CreateUser;
-use App\Data\CreateUserData;
 use App\Enums\Permission;
 use App\Enums\RoleName;
 use App\Models\User;
@@ -19,12 +17,11 @@ function bootstrapAdministratorForPasswordReset(): User
     $role = Role::findOrCreate(RoleName::Administrator->value, 'web');
     $role->syncPermissions($permissions);
 
-    $user = resolve(CreateUser::class)->handle(CreateUserData::from([
+    $user = User::factory()->create([
         'name' => 'Root Admin',
         'email' => 'admin@example.com',
         'password' => 'password',
-        'roles' => [],
-    ]));
+    ]);
     $user->assignRole($role);
 
     return $user;

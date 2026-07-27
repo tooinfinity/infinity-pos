@@ -64,7 +64,9 @@ final readonly class UpdateUserStatus
     {
         return User::query()
             ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $query) => $query->where('name', RoleName::Administrator->value))
+            ->whereHas('roles', fn (Builder $query) => $query
+                ->where('name', RoleName::Administrator->value)
+                ->where('guard_name', 'web'))
             ->whereKeyNot($user->getKey())
             ->doesntExist();
     }
