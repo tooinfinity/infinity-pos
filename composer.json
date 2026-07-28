@@ -11,9 +11,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.5.0",
-        "inertiajs/inertia-laravel": "v3.0.6",
-        "laravel/fortify": "^1.37.2",
-        "laravel/framework": "^13.18.0",
+        "inertiajs/inertia-laravel": "^3.2.0",
+        "laravel/fortify": "^1.37.3",
+        "laravel/framework": "^13.23.0",
         "laravel/wayfinder": "^0.1.20",
         "nunomaduro/essentials": "^1.2.0",
         "spatie/laravel-activitylog": "^5.0",
@@ -25,20 +25,19 @@
         "driftingly/rector-laravel": "^2.5.0",
         "fakerphp/faker": "^1.24.1",
         "larastan/larastan": "^3.10.0",
-        "laravel/boost": "^2.4.11",
+        "laravel/boost": "^2.4.13",
         "laravel/pail": "^1.2.7",
         "laravel/pao": "^1.1.2",
-        "laravel/pint": "^1.29.3",
+        "laravel/pint": "^1.30.0",
         "laravel/tinker": "^3.0.2",
         "mockery/mockery": "^1.6.12",
-        "mrpunyapal/peststan": "^0.2.11",
+        "mrpunyapal/peststan": "^0.2.12",
         "mrpunyapal/rector-pest": "^0.2.17",
-        "nunomaduro/collision": "^8.9.4",
-        "pestphp/pest": "^5.0",
-        "pestphp/pest-plugin-browser": "^5.0",
+        "nunomaduro/collision": "^8.9.5",
+        "pestphp/pest": "^5.0.1",
         "pestphp/pest-plugin-laravel": "^5.0",
         "pestphp/pest-plugin-type-coverage": "^5.0",
-        "rector/rector": "^2.5.2",
+        "rector/rector": "^2.5.8",
         "roave/security-advisories": "dev-latest"
     },
     "autoload": {
@@ -97,7 +96,7 @@
             "rector --dry-run",
             "bun run test:lint"
         ],
-        "test:unit": "yerd coverage vendor/bin/pest --parallel --coverage --exactly=100.0",
+        "test:unit": "pest --parallel --coverage --exactly=100.0",
         "test:types": [
             "phpstan",
             "bun run test:types"
