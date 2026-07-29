@@ -6,9 +6,9 @@ namespace App\Queries;
 
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 
 final readonly class GetRoleEditPageData
 {
@@ -30,7 +30,7 @@ final readonly class GetRoleEditPageData
 
         return [
             'role' => [
-                'id' => (string) $role->id,
+                'id' => $role->id,
                 'name' => $role->name,
                 'is_protected' => $isProtected,
                 'permissions_locked' => $permissionsLocked,

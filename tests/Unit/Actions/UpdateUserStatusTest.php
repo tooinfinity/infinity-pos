@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Actions\UpdateUserStatus;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
@@ -38,15 +38,6 @@ it('activates an inactive user', function (): void {
 
     expect($managedUser->refresh()->is_active)->toBeTrue();
 });
-
-it('forbids an actor from changing their own status', function (): void {
-    $actor = User::factory()->create();
-    $actor->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(UpdateUserStatus::class);
-
-    $action->handle($actor, $actor, isActive: false);
-})->throws(HttpException::class, 'You cannot change your own status.');
 
 it('forbids deactivating the only active administrator', function (): void {
     $actor = User::factory()->create();

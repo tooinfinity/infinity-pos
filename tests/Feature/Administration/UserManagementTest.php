@@ -6,10 +6,10 @@ use App\Actions\SyncUserRoles;
 use App\Actions\UpdateUserStatus;
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 
 function bootstrapAdministrator(): User
 {

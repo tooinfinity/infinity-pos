@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Actions\SyncRolePermissions;
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {

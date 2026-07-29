@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\Permission;
-use App\Enums\RoleName;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -20,17 +19,15 @@ final class StoreManagedUserRequest extends FormRequest
      */
     public function authorize(#[CurrentUser] User $actor): bool
     {
-        if ($actor->cannot($this->permission()->value)) {
+        if ($actor->cannot(Permission::UsersCreate->value)) {
             return false;
         }
 
-        $roles = $this->array('roles');
-
-        if ($roles !== [] && $actor->cannot(Permission::UsersAssignRoles->value)) {
-            return false;
+        if ($this->array('roles') === []) {
+            return true;
         }
 
-        return ! (in_array(RoleName::Administrator->value, $roles, true) && ! $actor->hasRole(RoleName::Administrator->value));
+        return $actor->can(Permission::UsersAssignRoles->value);
     }
 
     /**
@@ -45,10 +42,5 @@ final class StoreManagedUserRequest extends FormRequest
             'roles' => ['present', 'array'],
             'roles.*' => ['string', 'distinct', Rule::exists('roles', 'name')->where('guard_name', 'web')],
         ];
-    }
-
-    private function permission(): Permission
-    {
-        return Permission::UsersCreate;
     }
 }

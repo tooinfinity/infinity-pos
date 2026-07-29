@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Models\Role;
 use App\Models\User;
 use App\Queries\ListManagedUsers;
-use Spatie\Permission\Models\Role;
 
 it('paginates managed users newest first with archived users and roles', function (): void {
     $role = Role::findOrCreate('Manager', 'web');

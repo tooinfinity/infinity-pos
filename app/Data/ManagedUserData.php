@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Models\Role;
 use App\Models\User;
 use Spatie\LaravelData\Data;
-use Spatie\Permission\Models\Role;
 
 final class ManagedUserData extends Data
 {

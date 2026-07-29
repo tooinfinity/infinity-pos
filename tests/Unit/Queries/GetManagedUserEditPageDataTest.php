@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use App\Data\ManagedUserData;
 use App\Enums\Permission as AppPermission;
+use App\Models\Role;
 use App\Models\User;
 use App\Queries\GetManagedUserEditPageData;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 it('builds edit page data for an active managed user', function (): void {
     $actor = User::factory()->create();

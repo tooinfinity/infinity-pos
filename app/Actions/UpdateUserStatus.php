@@ -18,8 +18,6 @@ final readonly class UpdateUserStatus
      */
     public function handle(User $actor, User $managedUser, bool $isActive): void
     {
-        abort_if($actor->is($managedUser), 403, 'You cannot change your own status.');
-
         DB::transaction(function () use ($actor, $managedUser, $isActive): void {
             $lockedUser = User::query()
                 ->whereKey($managedUser->getKey())
@@ -29,8 +27,6 @@ final readonly class UpdateUserStatus
             if ($lockedUser === null) {
                 return;
             }
-
-            abort_if($actor->is($lockedUser), 403, 'You cannot change your own status.');
 
             $wasActive = $lockedUser->is_active;
 

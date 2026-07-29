@@ -18,8 +18,6 @@ final readonly class DeleteUser
      */
     public function handle(User $actor, User $managedUser): void
     {
-        abort_if($actor->is($managedUser), 403, 'You cannot archive your own account.');
-
         DB::transaction(function () use ($actor, $managedUser): void {
             $lockedUser = User::query()
                 ->whereKey($managedUser->getKey())
@@ -29,8 +27,6 @@ final readonly class DeleteUser
             if ($lockedUser === null) {
                 return;
             }
-
-            abort_if($actor->is($lockedUser), 403, 'You cannot archive your own account.');
 
             abort_if(
                 $lockedUser->hasRole(RoleName::Administrator->value) && ! $actor->hasRole(RoleName::Administrator->value),

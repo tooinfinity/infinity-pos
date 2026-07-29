@@ -37,7 +37,7 @@ return new class extends Migration
          * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
          */
         Schema::create($tableNames['roles'], static function (Blueprint $table): void {
-            $table->id(); // role id
+            $table->uuid('id')->primary(); // role id
             $table->string('name');
             $table->string('guard_name');
             $table->timestamps();
@@ -60,7 +60,7 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole): void {
-            $table->unsignedBigInteger($pivotRole);
+            $table->uuid($pivotRole);
 
             $table->string('model_type');
             $table->uuid($columnNames['model_morph_key']);
@@ -76,7 +76,7 @@ return new class extends Migration
 
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission): void {
             $table->unsignedBigInteger($pivotPermission);
-            $table->unsignedBigInteger($pivotRole);
+            $table->uuid($pivotRole);
 
             $table->foreign($pivotPermission)
                 ->references('id') // permission id

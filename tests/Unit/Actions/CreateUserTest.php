@@ -6,12 +6,12 @@ use App\Actions\CreateUser;
 use App\Data\CreateUserData;
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('may create a user', function (): void {
@@ -42,30 +42,6 @@ it('may create a user', function (): void {
 
     Event::assertDispatched(Registered::class);
 });
-
-it('rejects creating a user without users create permission', function (): void {
-    resolve(CreateUser::class)->handle(User::factory()->create(), CreateUserData::from([
-        'name' => 'Test User',
-        'email' => 'example@email.com',
-        'password' => 'password',
-    ]));
-})->throws(HttpException::class);
-
-it('rejects assigning roles without users assign roles permission', function (): void {
-    $actor = User::factory()->create();
-    $creatorRole = Role::findOrCreate('User creator', 'web');
-    $creatorRole->givePermissionTo(PermissionModel::findOrCreate(Permission::UsersCreate->value, 'web'));
-
-    $actor->assignRole($creatorRole);
-    Role::findOrCreate(RoleName::Cashier->value, 'web');
-
-    resolve(CreateUser::class)->handle($actor, CreateUserData::from([
-        'name' => 'Test User',
-        'email' => 'example@email.com',
-        'password' => 'password',
-        'roles' => [RoleName::Cashier->value],
-    ]));
-})->throws(HttpException::class);
 
 it('rejects administrator role escalation outside the request layer', function (): void {
     $actor = User::factory()->create();

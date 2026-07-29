@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Actions\CreateRole;
 use App\Actions\DeleteRole;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('creates a new web role without changing an existing role', function (): void {

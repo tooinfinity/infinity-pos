@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Queries;
 
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
-use Spatie\Permission\Models\Role;
 
 final readonly class ListRoles
 {

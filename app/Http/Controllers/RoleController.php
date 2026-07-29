@@ -6,12 +6,14 @@ namespace App\Http\Controllers;
 
 use App\Actions\CreateRole;
 use App\Actions\DeleteRole;
+use App\Actions\UpdateRole;
 use App\Http\Requests\CreateRolePageRequest;
 use App\Http\Requests\DeleteRoleRequest;
 use App\Http\Requests\EditRolePageRequest;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use App\Http\Requests\ViewRolesRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Queries\GetRoleEditPageData;
 use App\Queries\GetRolesIndexPageData;
@@ -20,7 +22,6 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 final readonly class RoleController
 {
@@ -51,9 +52,11 @@ final readonly class RoleController
         return Inertia::render('roles/edit', $pageData->execute($actor, $role));
     }
 
-    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role, UpdateRole $action): RedirectResponse
     {
-        $role->update(['name' => $request->validated('name')]);
+        /** @var string $name */
+        $name = $request->validated('name');
+        $action->handle($role, $name);
 
         return to_route('roles.index')
             ->with('toast', ['type' => 'success', 'message' => 'Role updated.']);

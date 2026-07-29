@@ -6,8 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\SyncRolePermissions;
 use App\Http\Requests\SyncRolePermissionsRequest;
+use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 final readonly class RolePermissionController

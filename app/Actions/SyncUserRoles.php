@@ -6,10 +6,10 @@ namespace App\Actions;
 
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\Activity;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 final readonly class SyncUserRoles
@@ -32,15 +32,10 @@ final readonly class SyncUserRoles
             }
 
             $currentRoles = $lockedUser->roles()->pluck('name')->all();
-            $administratorRole = RoleName::Administrator->value;
-            $wasAdministrator = in_array($administratorRole, $currentRoles, true);
-            $willBeAdministrator = in_array($administratorRole, $roles, true);
+            $wasAdministrator = in_array(RoleName::Administrator->value, $currentRoles, true);
+            $willBeAdministrator = in_array(RoleName::Administrator->value, $roles, true);
 
             abort_if($wasAdministrator && ! $willBeAdministrator && $this->isLastActiveAdministrator($lockedUser), 409, 'Cannot remove the only active administrator from their administrator role.');
-
-            abort_if($wasAdministrator && ! $actor->hasRole($administratorRole), 403);
-
-            abort_if($willBeAdministrator && ! $actor->hasRole($administratorRole), 403);
 
             $lockedUser->syncRoles($roles);
 

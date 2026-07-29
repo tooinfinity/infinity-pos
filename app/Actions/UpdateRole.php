@@ -4,32 +4,27 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\RoleName;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-final readonly class DeleteRole
+final readonly class UpdateRole
 {
     /**
      * @throws Throwable
      */
-    public function handle(Role $role): bool
+    public function handle(Role $role, string $name): Role
     {
-        return DB::transaction(function () use ($role): bool {
+        return DB::transaction(function () use ($role, $name): Role {
             $lockedRole = Role::query()
                 ->whereKey($role->getKey())
                 ->where('guard_name', 'web')
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            abort_if(RoleName::contains($lockedRole->name), 403);
+            $lockedRole->update(['name' => $name]);
 
-            if ($lockedRole->users()->exists()) {
-                return false;
-            }
-
-            return (bool) $lockedRole->delete();
+            return $lockedRole->refresh();
         });
     }
 }

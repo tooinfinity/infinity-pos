@@ -6,9 +6,9 @@ namespace App\Queries;
 
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 
 final readonly class GetRolesIndexPageData
 {
@@ -24,7 +24,7 @@ final readonly class GetRolesIndexPageData
     {
         return [
             'roles' => $this->roles->execute()->map(fn (Role $role): array => [
-                'id' => (string) $role->id,
+                'id' => $role->id,
                 'name' => $role->name,
                 'is_protected' => RoleName::contains($role->name),
                 'permissions' => $role->permissions->map(fn (PermissionModel $permission): string => $permission->name)->all(),

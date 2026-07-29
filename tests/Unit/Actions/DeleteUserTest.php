@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use App\Actions\DeleteUser;
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
@@ -51,15 +51,6 @@ it('purges the sessions of a soft-deleted user', function (): void {
 
     expect(DB::table('sessions')->where('user_id', $managedUserId)->count())->toBe(0);
 });
-
-it('forbids the actor from archiving themselves', function (): void {
-    $actor = User::factory()->create();
-    $actor->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(DeleteUser::class);
-
-    $action->handle($actor, $actor);
-})->throws(HttpException::class, 'You cannot archive your own account.');
 
 it('forbids a non-administrator from archiving the only remaining administrator', function (): void {
     $actManager = User::factory()->create();

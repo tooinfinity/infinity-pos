@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Data\CreateUserData;
-use App\Enums\Permission;
 use App\Enums\RoleName;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -20,9 +19,11 @@ final readonly class CreateUser
      */
     public function handle(User $actor, CreateUserData $data): User
     {
-        abort_if($actor->cannot(Permission::UsersCreate->value), 403);
-        abort_if($data->roles !== [] && $actor->cannot(Permission::UsersAssignRoles->value), 403);
-        abort_if(in_array(RoleName::Administrator->value, $data->roles, true) && ! $actor->hasRole(RoleName::Administrator->value), 403);
+        abort_if(
+            in_array(RoleName::Administrator->value, $data->roles, true) && ! $actor->hasRole(RoleName::Administrator->value),
+            403,
+            'Only administrators can grant the administrator role.',
+        );
 
         return DB::transaction(function () use ($actor, $data): User {
             $user = User::query()->create([

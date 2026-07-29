@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Queries\ListRoles;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 
 it('lists roles alphabetically with permissions and user counts', function (): void {
     $permission = PermissionModel::findOrCreate(Permission::UsersView->value, 'web');

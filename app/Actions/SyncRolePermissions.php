@@ -6,8 +6,8 @@ namespace App\Actions;
 
 use App\Enums\Permission;
 use App\Enums\RoleName;
+use App\Models\Role;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 final readonly class SyncRolePermissions

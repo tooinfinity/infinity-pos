@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Queries\ListRoles;
 use App\Queries\ListSelectableRoles;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 
 it('only lists web roles', function (): void {
     $actor = User::factory()->create();

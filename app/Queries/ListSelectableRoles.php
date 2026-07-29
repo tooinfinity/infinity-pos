@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Queries;
 
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 final readonly class ListSelectableRoles
 {
