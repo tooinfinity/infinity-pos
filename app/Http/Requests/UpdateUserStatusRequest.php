@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\AdministratorProtectionMode;
 use App\Enums\Permission;
 use App\Models\User;
+use App\Rules\RemainingAdministrator;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Container\Attributes\RouteParameter;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -29,7 +31,16 @@ final class UpdateUserStatusRequest extends FormRequest
      */
     public function rules(): array
     {
-        return ['is_active' => ['required', 'boolean']];
+        $managedUser = $this->route('user');
+        assert($managedUser instanceof User);
+
+        return [
+            'is_active' => [
+                'required',
+                'boolean',
+                new RemainingAdministrator(AdministratorProtectionMode::Status, $managedUser),
+            ],
+        ];
     }
 
     private function permission(): Permission

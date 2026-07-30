@@ -14,16 +14,18 @@ final readonly class RestoreUser
     /**
      * @throws Throwable
      */
-    public function handle(User $actor, User $managedUser): void
+    public function handle(User $actor, User $managedUser): bool
     {
-        DB::transaction(function () use ($actor, $managedUser): void {
+        return DB::transaction(function () use ($actor, $managedUser): bool {
             $lockedUser = User::query()
                 ->withTrashed()
                 ->whereKey($managedUser->getKey())
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
 
-            abort_unless($lockedUser->trashed(), 409, 'The account is not archived.');
+            if ($lockedUser === null || ! $lockedUser->trashed()) {
+                return false;
+            }
 
             $lockedUser->restore();
 
@@ -34,6 +36,8 @@ final readonly class RestoreUser
                     'email' => $lockedUser->email,
                 ])
                 ->log('User account restored.');
+
+            return true;
         });
     }
 }

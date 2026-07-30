@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\RoleName;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -22,8 +21,6 @@ final readonly class DeleteRole
                 ->where('guard_name', 'web')
                 ->lockForUpdate()
                 ->firstOrFail();
-
-            abort_if(RoleName::contains($lockedRole->name), 403);
 
             if ($lockedRole->users()->exists()) {
                 return false;

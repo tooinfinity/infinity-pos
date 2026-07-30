@@ -118,7 +118,8 @@ it('rejects assigning the administrator role without holding it', function (): v
         'password' => 'password',
         'password_confirmation' => 'password',
         'roles' => [RoleName::Administrator->value],
-    ])->assertForbidden();
+    ])->assertRedirect()
+        ->assertSessionHasErrors('roles');
 });
 
 it('prevents a user from deactivating themselves', function (): void {
@@ -141,7 +142,8 @@ it('refuses to deactivate the only active administrator', function (): void {
 
     $this->actingAs($employee)
         ->put(route('users.status.update', ['user' => $admin->id]), ['is_active' => false])
-        ->assertStatus(409);
+        ->assertRedirect()
+        ->assertSessionHasErrors('is_active');
 });
 
 it('blocks removal of the last active administrator role', function (): void {
@@ -149,8 +151,10 @@ it('blocks removal of the last active administrator role', function (): void {
 
     $this->actingAs($admin)
         ->withSession(confirmAdministrativePassword())
+        ->fromRoute('users.edit', ['user' => $admin->id])
         ->put(route('users.roles.sync', ['user' => $admin->id]), ['roles' => []])
-        ->assertStatus(409);
+        ->assertRedirect(route('users.edit', ['user' => $admin->id]))
+        ->assertSessionHasErrors('roles');
 
     expect($admin->fresh()->hasRole(RoleName::Administrator->value))->toBeTrue();
 });
@@ -260,6 +264,20 @@ it('restores an archived user while preserving their status and roles', function
     expect($restored)->not->toBeNull()
         ->and($restored->is_active)->toBeFalse()
         ->and($restored->hasRole(RoleName::Cashier->value))->toBeTrue();
+});
+
+it('flashes an error toast when restoring a user who is not archived', function (): void {
+    $admin = bootstrapAdministrator();
+    $target = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->withSession(confirmAdministrativePassword())
+        ->put(route('users.restore', ['user' => $target->getKey()]))
+        ->assertRedirectToRoute('users.index')
+        ->assertSessionHas('toast.type', 'error')
+        ->assertSessionHas('toast.message', 'The account is not archived.');
+
+    expect($target->fresh()->deleted_at)->toBeNull();
 });
 
 it('opens the management page for an archived user after password confirmation', function (): void {

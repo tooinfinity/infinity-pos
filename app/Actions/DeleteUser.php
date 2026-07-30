@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\RoleName;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\Activity;
 use Throwable;
@@ -28,14 +26,6 @@ final readonly class DeleteUser
                 return;
             }
 
-            abort_if(
-                $lockedUser->hasRole(RoleName::Administrator->value) && ! $actor->hasRole(RoleName::Administrator->value),
-                403,
-                'Only administrators can archive administrators.',
-            );
-
-            abort_if($this->isOnlyRemainingAdministrator($lockedUser), 409, 'Cannot archive the only remaining administrator.');
-
             $lockedUser->delete();
 
             DB::table('sessions')
@@ -50,19 +40,5 @@ final readonly class DeleteUser
                 ])
                 ->log('User account archived.');
         });
-    }
-
-    private function isOnlyRemainingAdministrator(User $user): bool
-    {
-        if (! $user->hasRole(RoleName::Administrator->value)) {
-            return false;
-        }
-
-        return User::query()
-            ->whereKeyNot($user->getKey())
-            ->whereHas('roles', fn (Builder $query) => $query
-                ->where('name', RoleName::Administrator->value)
-                ->where('guard_name', 'web'))
-            ->doesntExist();
     }
 }

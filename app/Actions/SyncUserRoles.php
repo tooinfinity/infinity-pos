@@ -32,10 +32,6 @@ final readonly class SyncUserRoles
             }
 
             $currentRoles = $lockedUser->roles()->pluck('name')->all();
-            $wasAdministrator = in_array(RoleName::Administrator->value, $currentRoles, true);
-            $willBeAdministrator = in_array(RoleName::Administrator->value, $roles, true);
-
-            abort_if($wasAdministrator && ! $willBeAdministrator && $this->isLastActiveAdministrator($lockedUser), 409, 'Cannot remove the only active administrator from their administrator role.');
 
             $lockedUser->syncRoles($roles);
 
@@ -50,19 +46,6 @@ final readonly class SyncUserRoles
                 ])
                 ->log('User roles updated.');
         });
-    }
-
-    private function isLastActiveAdministrator(User $user): bool
-    {
-        if (! $user->is_active) {
-            return false;
-        }
-
-        $activeAdministratorCount = Role::findByName(RoleName::Administrator->value, 'web')->users()
-            ->where('users.is_active', true)
-            ->count();
-
-        return $activeAdministratorCount <= 1;
     }
 
     private function retainAdministratorPermissions(User $user): void

@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\Permission;
 use App\Models\User;
+use App\Rules\RolesGrantAdmin;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,11 +36,22 @@ final class StoreManagedUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $actor = $this->user();
+        /** @var array<int, string> $roles */
+        $roles = $this->array('roles');
+
+        assert($actor instanceof User);
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'roles' => ['present', 'array'],
+            'roles' => [
+                'bail',
+                'present',
+                'array',
+                new RolesGrantAdmin($actor, $roles),
+            ],
             'roles.*' => ['string', 'distinct', Rule::exists('roles', 'name')->where('guard_name', 'web')],
         ];
     }

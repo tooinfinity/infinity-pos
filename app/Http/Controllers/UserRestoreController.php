@@ -18,7 +18,10 @@ final readonly class UserRestoreController
      */
     public function __invoke(RestoreUserRequest $request, #[CurrentUser] User $actor, User $user, RestoreUser $action): RedirectResponse
     {
-        $action->handle($actor, $user);
+        if (! $action->handle($actor, $user)) {
+            return to_route('users.index')
+                ->with('toast', ['type' => 'error', 'message' => 'The account is not archived.']);
+        }
 
         return to_route('users.index')
             ->with('toast', ['type' => 'success', 'message' => sprintf('Account for %s restored.', $user->name)]);

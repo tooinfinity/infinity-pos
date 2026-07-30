@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\Permission;
-use App\Enums\RoleName;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -31,8 +30,6 @@ final readonly class SyncRolePermissions
                 ->where('guard_name', 'web')
                 ->lockForUpdate()
                 ->firstOrFail();
-
-            abort_if($lockedRole->name === RoleName::Administrator->value, 403, 'The administrator role permissions are managed automatically.');
 
             $lockedRole->syncPermissions($resolved);
         });

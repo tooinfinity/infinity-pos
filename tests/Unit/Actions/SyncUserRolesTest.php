@@ -8,7 +8,6 @@ use App\Enums\RoleName;
 use App\Models\Role;
 use App\Models\User;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
     $administrator = Role::findOrCreate(RoleName::Administrator->value, 'web');
@@ -36,27 +35,6 @@ it('assigns the given roles to the managed user', function (): void {
 
     expect($managedUser->refresh()->roles->pluck('name')->all())->toBe(['editor']);
 });
-
-it('forbids demoting the only active administrator by another administrator', function (): void {
-    $actor = User::factory()->create();
-    $actor->assignRole('editor');
-
-    $onlyAdmin = User::factory()->create(['is_active' => true]);
-    $onlyAdmin->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(SyncUserRoles::class);
-
-    $action->handle($actor, $onlyAdmin, ['editor']);
-})->throws(HttpException::class, 'Cannot remove the only active administrator from their administrator role.');
-
-it('forbids the last active administrator from removing themselves from the role', function (): void {
-    $onlyAdmin = User::factory()->create(['is_active' => true]);
-    $onlyAdmin->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(SyncUserRoles::class);
-
-    $action->handle($onlyAdmin, $onlyAdmin, ['editor']);
-})->throws(HttpException::class, 'Cannot remove the only active administrator from their administrator role.');
 
 it('allows demoting an administrator when another active administrator exists', function (): void {
     $actor = User::factory()->create();

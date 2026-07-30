@@ -7,7 +7,6 @@ use App\Enums\RoleName;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
     Role::findOrCreate(RoleName::Administrator->value, 'web');
@@ -52,18 +51,6 @@ it('purges the sessions of a soft-deleted user', function (): void {
     expect(DB::table('sessions')->where('user_id', $managedUserId)->count())->toBe(0);
 });
 
-it('forbids a non-administrator from archiving the only remaining administrator', function (): void {
-    $actManager = User::factory()->create();
-    $actManager->assignRole('editor');
-
-    $onlyAdmin = User::factory()->create();
-    $onlyAdmin->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(DeleteUser::class);
-
-    $action->handle($actManager, $onlyAdmin);
-})->throws(HttpException::class, 'Only administrators can archive administrators.');
-
 it('allows deletion of a non-administrator user when other administrators exist', function (): void {
     $actor = User::factory()->create();
     $actor->assignRole(RoleName::Administrator->value);
@@ -82,18 +69,6 @@ it('allows deletion of a non-administrator user when other administrators exist'
 
     expect(User::query()->whereKey($managedUserId)->exists())->toBeFalse();
 });
-
-it('forbids a non-administrator actor from archiving an administrator when other admins exist', function (): void {
-    $actManager = User::factory()->create();
-    $actManager->assignRole('editor');
-
-    $secondAdmin = User::factory()->create();
-    $secondAdmin->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(DeleteUser::class);
-
-    $action->handle($actManager, $secondAdmin);
-})->throws(HttpException::class, 'Only administrators can archive administrators.');
 
 it('allows deletion of an administrator when at least one other administrator exists', function (): void {
     $actor = User::factory()->create();

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\AdministratorProtectionMode;
 use App\Enums\Permission;
 use App\Models\User;
+use App\Rules\RemainingAdministrator;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,9 +25,21 @@ final class SyncUserRolesRequest extends FormRequest
      */
     public function rules(): array
     {
+        $managedUser = $this->route('user');
+        assert($managedUser instanceof User);
+
         return [
-            'roles' => ['present', 'array'],
-            'roles.*' => ['string', 'distinct', Rule::exists('roles', 'name')->where('guard_name', 'web')],
+            'roles' => [
+                'bail',
+                'present',
+                'array',
+                new RemainingAdministrator(AdministratorProtectionMode::Role, $managedUser),
+            ],
+            'roles.*' => [
+                'string',
+                'distinct',
+                Rule::exists('roles', 'name')->where('guard_name', 'web'),
+            ],
         ];
     }
 

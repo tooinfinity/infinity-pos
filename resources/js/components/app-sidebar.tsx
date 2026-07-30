@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     FolderGit2,
@@ -19,6 +19,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/lib/permissions';
 import { dashboard } from '@/routes';
 import * as roles from '@/routes/roles';
 import * as users from '@/routes/users';
@@ -38,8 +39,7 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
-    const permissions = auth.user?.permissions ?? [];
+    const { can } = usePermissions();
 
     const mainNavItems: NavItem[] = [
         {
@@ -49,7 +49,7 @@ export function AppSidebar() {
         },
     ];
 
-    if (permissions.includes('users.view')) {
+    if (can('users.view')) {
         mainNavItems.push({
             title: 'Users',
             href: users.index().url,
@@ -57,7 +57,7 @@ export function AppSidebar() {
         });
     }
 
-    if (permissions.includes('roles.view')) {
+    if (can('roles.view')) {
         mainNavItems.push({
             title: 'Roles',
             href: roles.index().url,

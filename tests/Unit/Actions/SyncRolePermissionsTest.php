@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 use App\Actions\SyncRolePermissions;
 use App\Enums\Permission;
-use App\Enums\RoleName;
 use App\Models\Role;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
     foreach (Permission::cases() as $permission) {
@@ -48,14 +46,6 @@ it('clears all permissions when given an empty list', function (): void {
 
     expect($role->refresh()->permissions)->toBeEmpty();
 });
-
-it('rejects an attempt to mutate the administrator role', function (): void {
-    $role = Role::create(['name' => RoleName::Administrator->value]);
-
-    $action = resolve(SyncRolePermissions::class);
-
-    $action->handle($role, []);
-})->throws(HttpException::class, 'The administrator role permissions are managed automatically.');
 
 it('throws on an unknown permission value', function (): void {
     $role = Role::create(['name' => 'editor']);

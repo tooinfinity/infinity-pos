@@ -6,7 +6,6 @@ use App\Actions\UpdateUserStatus;
 use App\Enums\RoleName;
 use App\Models\Role;
 use App\Models\User;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
     Role::findOrCreate(RoleName::Administrator->value, 'web');
@@ -38,18 +37,6 @@ it('activates an inactive user', function (): void {
 
     expect($managedUser->refresh()->is_active)->toBeTrue();
 });
-
-it('forbids deactivating the only active administrator', function (): void {
-    $actor = User::factory()->create();
-    $actor->assignRole('editor');
-
-    $onlyAdmin = User::factory()->create(['is_active' => true]);
-    $onlyAdmin->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(UpdateUserStatus::class);
-
-    $action->handle($actor, $onlyAdmin, isActive: false);
-})->throws(HttpException::class, 'Cannot deactivate the only active administrator.');
 
 it('allows deactivating an administrator when another active administrator remains', function (): void {
     $actor = User::factory()->create();
@@ -99,18 +86,3 @@ it('does nothing when the managed user no longer exists', function (): void {
 
     expect(User::query()->withTrashed()->whereKey($ghostId)->exists())->toBeFalse();
 });
-
-it('forbids a non-administrator actor from targeting the only remaining administrator role', function (): void {
-    $actor = User::factory()->create();
-    $actor->assignRole('editor');
-
-    $onlyAdmin = User::factory()->create(['is_active' => false]);
-    $onlyAdmin->assignRole(RoleName::Administrator->value);
-
-    $target = User::factory()->create(['is_active' => false]);
-    $target->assignRole(RoleName::Administrator->value);
-
-    $action = resolve(UpdateUserStatus::class);
-
-    $action->handle($actor, $target, isActive: true);
-})->throws(HttpException::class);

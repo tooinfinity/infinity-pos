@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 use App\Actions\CreateRole;
 use App\Actions\DeleteRole;
-use App\Enums\RoleName;
 use App\Models\Role;
 use App\Models\User;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('creates a new web role without changing an existing role', function (): void {
     $existing = Role::create(['name' => 'Existing', 'guard_name' => 'web']);
@@ -33,9 +31,3 @@ it('does not delete an assigned role', function (): void {
     expect(resolve(DeleteRole::class)->handle($role))->toBeFalse()
         ->and(Role::query()->whereKey($role->id)->exists())->toBeTrue();
 });
-
-it('defends protected roles outside the request layer', function (): void {
-    $role = Role::findOrCreate(RoleName::Cashier->value, 'web');
-
-    resolve(DeleteRole::class)->handle($role);
-})->throws(HttpException::class);

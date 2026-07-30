@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\RoleName;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Facades\Activity;
 use Throwable;
@@ -28,11 +26,7 @@ final readonly class UpdateUserStatus
                 return;
             }
 
-            $wasActive = $lockedUser->is_active;
-
-            abort_if($wasActive && ! $isActive && $this->isLastActiveAdministrator($lockedUser), 409, 'Cannot deactivate the only active administrator.');
-
-            abort_if(! $actor->hasRole(RoleName::Administrator->value) && $this->isOnlyRemainingAdministrator($lockedUser), 403);
+            $wasActive = (bool) $lockedUser->is_active;
 
             $lockedUser->forceFill(['is_active' => $isActive])->save();
 
@@ -40,30 +34,10 @@ final readonly class UpdateUserStatus
                 ->performedOn($lockedUser)
                 ->withProperties([
                     'event' => 'status.updated',
-                    'from' => (bool) $wasActive,
+                    'from' => $wasActive,
                     'to' => $isActive,
                 ])
                 ->log('User status updated.');
         });
-    }
-
-    private function isLastActiveAdministrator(User $user): bool
-    {
-        if (! $user->hasRole(RoleName::Administrator->value)) {
-            return false;
-        }
-
-        return $this->isOnlyRemainingAdministrator($user);
-    }
-
-    private function isOnlyRemainingAdministrator(User $user): bool
-    {
-        return User::query()
-            ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $query) => $query
-                ->where('name', RoleName::Administrator->value)
-                ->where('guard_name', 'web'))
-            ->whereKeyNot($user->getKey())
-            ->doesntExist();
     }
 }
